@@ -3,6 +3,12 @@ package _02_Pixel_Art;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
+import java.awt.Point;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 
 import javax.swing.JPanel;
 
@@ -15,6 +21,8 @@ public class GridPanel extends JPanel {
 	private int pixelHeight;
 	private int rows;
 	private int cols;
+	
+	private static final String DATA_FILE = "src/_02_Pixel_Art/pixelData";
 
 	// 1. Create a 2D array of pixels. Do not initialize it yet.
 
@@ -39,12 +47,8 @@ public class GridPanel extends JPanel {
 		pixels = new Pixel[cols][rows];
 
 		// 3. Iterate through the array and initialize each element to a new pixel.
-		for (int i = 0; i < pixels.length; i++) {
-			for (int j = 0; j < pixels[0].length; j++) {
-				pixels[i][j] = new Pixel(i * pixelWidth,j*pixelHeight);
-			}
-		}
-
+		initializePixels();
+				
 	}
 
 	public void setColor(Color c) {
@@ -54,13 +58,39 @@ public class GridPanel extends JPanel {
 	public void clickPixel(int mouseX, int mouseY) {
 		// 5. Use the mouseX and mouseY variables to change the color
 		// of the pixel that was clicked. *HINT* Use the pixel's dimensions.
-		for (int i = 0; i < pixels.length; i++) {
-			for (int j = 0; j < pixels[0].length; j++) {
-				if (mouseX < pixels[i][j].x + pixelWidth && mouseX > pixels[i][j].x && mouseY > pixels[i][j].y
-						&& mouseY < pixels[i][j].y + pixelHeight) {
-					pixels[i][j].color = color;
+
+		int pixelX = mouseX / pixelWidth;
+		int pixelY = mouseY / pixelHeight;
+
+		pixels[pixelX][pixelY].color = color;
+
+	}
+
+	public void savePixelData() {
+		PixelData data = new PixelData(pixels);
+		try {
+			FileOutputStream fos = new FileOutputStream(new File(DATA_FILE));
+			ObjectOutputStream oos = new ObjectOutputStream(fos);
+			oos.writeObject(data);
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public void loadPixelData() {
+		try {
+			FileInputStream fis = new FileInputStream(new File(DATA_FILE));
+			ObjectInputStream ois = new ObjectInputStream(fis);
+			PixelData data = (PixelData) ois.readObject();
+			pixels = data.pixels;
+			for (int i = 0; i < data.pixels.length; i++) {
+				for (int j = 0; j < data.pixels[0].length; j++) {
+					System.out.println(data.pixels[i][j].x + ", " + data.pixels[i][j].y + " - " + data.pixels[i][j].color);
 				}
 			}
+		} catch(Exception e) {
+			e.printStackTrace();
 		}
 	}
 
@@ -79,4 +109,13 @@ public class GridPanel extends JPanel {
 		}
 
 	}
+	
+	public void initializePixels() {
+		for (int i = 0; i < pixels.length; i++) {
+			for (int j = 0; j < pixels[0].length; j++) {
+				pixels[i][j] = new Pixel(i, j);
+			}
+		}
+	}
+	
 }
